@@ -78,6 +78,52 @@ export class SettingsTab extends PluginSettingTab {
 					});
 			});
 
+		// Template Settings Section
+		containerEl.createEl('h3', { text: 'Template Settings' });
+
+		const templateDescription = containerEl.createEl('p');
+		templateDescription.innerHTML = `Configure custom templates for generated markdown files. If a template file is not found, the plugin will use a built-in fallback template. Templates support variables like {{title}}, {{filename}}, {{extracted_content}}, {{description}}, {{date}}, {{size}}, and {{path}}.`;
+
+		new Setting(containerEl)
+			.setName('PNG Template Path')
+			.setDesc('Path to template for PNG files (e.g., Templates/Visual Note.md)')
+			.addText(text => text
+				.setPlaceholder('Templates/Visual Note.md')
+				.setValue(this.settingsService.pngTemplatePath)
+				.onChange(async (value) => {
+					await this.settingsService.updatePngTemplatePath(value);
+				}));
+
+		new Setting(containerEl)
+			.setName('JPEG Template Path')
+			.setDesc('Path to template for JPEG files')
+			.addText(text => text
+				.setPlaceholder('Templates/Visual Note.md')
+				.setValue(this.settingsService.jpegTemplatePath)
+				.onChange(async (value) => {
+					await this.settingsService.updateJpegTemplatePath(value);
+				}));
+
+		new Setting(containerEl)
+			.setName('JPG Template Path')
+			.setDesc('Path to template for JPG files')
+			.addText(text => text
+				.setPlaceholder('Templates/Visual Note.md')
+				.setValue(this.settingsService.jpgTemplatePath)
+				.onChange(async (value) => {
+					await this.settingsService.updateJpgTemplatePath(value);
+				}));
+
+		new Setting(containerEl)
+			.setName('PDF Template Path')
+			.setDesc('Path to template for PDF files')
+			.addText(text => text
+				.setPlaceholder('Templates/Visual Note.md')
+				.setValue(this.settingsService.pdfTemplatePath)
+				.onChange(async (value) => {
+					await this.settingsService.updatePdfTemplatePath(value);
+				}));
+
 		// Add Restore Defaults button
 		new Setting(containerEl)
 			.setName('Restore default settings')

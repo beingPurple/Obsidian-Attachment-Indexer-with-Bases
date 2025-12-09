@@ -1,13 +1,17 @@
 import { BaseConverterService } from './BaseConverterService';
 import { FileDao, File } from "../dao/FileDao";
-import { PDF_FILE_DESCRIPTION } from "../utils/constants";
+import { PDF_FILE_DESCRIPTION, DEFAULT_PDF_TEMPLATE } from "../utils/constants";
 import { AttachmentParserService } from './AttachmentParserService';
+import { TemplateService } from './TemplateService';
+import { SettingsService } from './SettingsService';
 
 export class PdfConverterService extends BaseConverterService {
     constructor(
-        fileDao: FileDao, 
+        fileDao: FileDao,
         indexFolder: string,
-        private parser: AttachmentParserService
+        private parser: AttachmentParserService,
+        private templateService: TemplateService,
+        private settingsService: SettingsService
     ) {
         super(fileDao, {
             indexFolder,
@@ -18,16 +22,26 @@ export class PdfConverterService extends BaseConverterService {
 
     protected async convertContent(source: File): Promise<string> {
         const content = await this.parser.parseAttachmentContent(source.sizeInMB, () => source.getBinaryContent(), source.path);
-        return `# ${source.name}
 
-![[${source.name}#height=500]]
+        // Load template (user custom or fallback)
+        const template = await this.templateService.loadTemplate(
+            this.settingsService.pdfTemplatePath,
+            DEFAULT_PDF_TEMPLATE
+        );
 
-${PDF_FILE_DESCRIPTION}
+        // Prepare template variables
+        const variables = {
+            title: source.name.replace(/\.pdf$/i, ''),
+            filename: source.name,
+            extracted_content: content,
+            description: PDF_FILE_DESCRIPTION,
+            date: new Date().toISOString().split('T')[0],
+            size: `${source.sizeInBytes} bytes`,
+            path: source.path
+        };
 
-# PDF Content
-
-${content}
-`;
+        // Substitute variables in template
+        return this.templateService.substituteVariables(template, variables);
     }
 
     override async convertFiles(): Promise<void> {

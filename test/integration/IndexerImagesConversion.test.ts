@@ -5,6 +5,7 @@ import {InMemoryFileAdapter} from '../dao/InMemoryFileAdapter';
 import {createTestImageFile} from '../utils/testFileUtils';
 import { IMAGE_FILE_DESCRIPTION } from '../../src/utils/constants';
 import { GeminiAttachmentParserService } from '../../src/service/AttachmentParserService';
+import { TemplateServiceImpl } from '../../src/service/TemplateService';
 import { config } from 'dotenv';
 
 // Load environment variables from .env file
@@ -25,12 +26,22 @@ describe('Integration Test: Image Indexer Conversion', () => {
 
         fileAdapter = new InMemoryFileAdapter();
         fileDao = new FileDaoImpl(fileAdapter);
+        const templateService = new TemplateServiceImpl(fileDao);
+
+        // Mock settings service with template paths
+        const mockSettingsService = {
+            pngTemplatePath: 'Templates/Visual Note.md',
+            jpegTemplatePath: 'Templates/Visual Note.md',
+            jpgTemplatePath: 'Templates/Visual Note.md',
+            pdfTemplatePath: 'Templates/Visual Note.md'
+        } as any;
+
         const imageParser = new GeminiAttachmentParserService(
-            {getApiKey: () => apiKey}, 
+            {getApiKey: () => apiKey},
             'image/png',
             "Parse text from the image. Return full text and also give me description of the image"
         );
-        pngConverter = new PngConverterService(fileDao, 'index', imageParser);
+        pngConverter = new PngConverterService(fileDao, 'index', imageParser, templateService, mockSettingsService);
 
         // Clear dao to ensure a clean state
         fileAdapter.clear();

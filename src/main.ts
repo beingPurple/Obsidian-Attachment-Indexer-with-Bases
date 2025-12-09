@@ -12,6 +12,7 @@ import { GeminiAttachmentParserService } from './service/AttachmentParserService
 import { PdfConverterService } from './service/PdfConverterService';
 import { FatalProcessingError } from './service/AttachmentParserService';
 import { Platform } from 'obsidian';
+import { TemplateServiceImpl } from './service/TemplateService';
 
 export default class ObsidianIndexer extends Plugin {
 	private isConverting = false;
@@ -24,8 +25,9 @@ export default class ObsidianIndexer extends Plugin {
 		// Initialize dependencies
 		const fileAdapter: FileAdapter = new ObsidianFileAdapter(this.app);
 		const fileDao = new FileDaoImpl(fileAdapter);
+		const templateService = new TemplateServiceImpl(fileDao);
 		const canvasService = new CanvasService(fileDao, settingsService);
-		
+
 		// Create parser instances with specific prompts for each type
 		const pdfParser = new GeminiAttachmentParserService(
 			settingsService, 
@@ -52,10 +54,10 @@ export default class ObsidianIndexer extends Plugin {
 		);
 
 		// Create converters
-		const pdfConverter = new PdfConverterService(fileDao, settingsService.indexFolder, pdfParser);
-		const pngConverter = new PngConverterService(fileDao, settingsService.indexFolder, pngParser);
-		const jpgConverter = new JpgConverterService(fileDao, settingsService.indexFolder, jpgParser);
-		const jpegConverter = new JpegConverterService(fileDao, settingsService.indexFolder, jpegParser);
+		const pdfConverter = new PdfConverterService(fileDao, settingsService.indexFolder, pdfParser, templateService, settingsService);
+		const pngConverter = new PngConverterService(fileDao, settingsService.indexFolder, pngParser, templateService, settingsService);
+		const jpgConverter = new JpgConverterService(fileDao, settingsService.indexFolder, jpgParser, templateService, settingsService);
+		const jpegConverter = new JpegConverterService(fileDao, settingsService.indexFolder, jpegParser, templateService, settingsService);
 
 		// Initialize converters and other services
 		const runConversion = async () => {

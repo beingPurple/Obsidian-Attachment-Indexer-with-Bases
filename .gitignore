@@ -1,5 +1,7 @@
 # Environment files
 .env
+bun.lock
+manifest.json
 
 # Node modules and build output
 node_modules/
