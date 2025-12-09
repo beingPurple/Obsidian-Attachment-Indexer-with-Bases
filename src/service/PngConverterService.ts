@@ -4,6 +4,7 @@ import { IMAGE_FILE_DESCRIPTION, DEFAULT_IMAGE_TEMPLATE } from "../utils/constan
 import { AttachmentParserService } from './AttachmentParserService';
 import { TemplateService } from './TemplateService';
 import { SettingsService } from './SettingsService';
+import { Notice } from 'obsidian';
 
 export class PngConverterService extends BaseConverterService {
     constructor(
@@ -52,7 +53,8 @@ export class PngConverterService extends BaseConverterService {
 
     override async convertFiles(): Promise<void> {
         if (!this.parser.validateApiKey()) {
-            console.warn('No Google API key configured - image parsing will be skipped');
+            console.warn('[PngConverter] No Google API key configured - PNG image parsing will be skipped');
+            new Notice('⚠️ Google API key not configured. PNG files will not be indexed.\n\nPlease add your API key in plugin settings to enable image processing.', 8000);
             return;
         }
         await super.convertFiles();

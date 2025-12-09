@@ -4,6 +4,7 @@ import { IMAGE_FILE_DESCRIPTION, DEFAULT_IMAGE_TEMPLATE } from "../utils/constan
 import { AttachmentParserService } from './AttachmentParserService';
 import { TemplateService } from './TemplateService';
 import { SettingsService } from './SettingsService';
+import { Notice } from 'obsidian';
 
 export class JpegConverterService extends BaseConverterService {
     constructor(
@@ -46,7 +47,8 @@ export class JpegConverterService extends BaseConverterService {
 
     override async convertFiles(): Promise<void> {
         if (!this.parser.validateApiKey()) {
-            console.warn('No Google API key configured - image parsing will be skipped');
+            console.warn('[JpegConverter] No Google API key configured - JPEG image parsing will be skipped');
+            new Notice('⚠️ Google API key not configured. JPEG files will not be indexed.\n\nPlease add your API key in plugin settings to enable image processing.', 8000);
             return;
         }
         await super.convertFiles();

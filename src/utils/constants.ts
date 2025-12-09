@@ -19,7 +19,10 @@ export const PDF_FILE_DESCRIPTION =
 	"This index file enables Obsidian and its plugins to manage PDF files effectively. It ensures PDF files appear in graphs and allows plugins compatible only with MD files to access these files.";
 
 // Default fallback templates for when user templates are not found
-export const DEFAULT_IMAGE_TEMPLATE = `# {{title}}
+export const DEFAULT_IMAGE_TEMPLATE = `---
+type: Visual Note
+cover: "[[{{filename}}]]"
+---
 
 ![[{{filename}}|500]]
 
@@ -30,7 +33,10 @@ export const DEFAULT_IMAGE_TEMPLATE = `# {{title}}
 {{extracted_content}}
 `;
 
-export const DEFAULT_PDF_TEMPLATE = `# {{title}}
+export const DEFAULT_PDF_TEMPLATE = `---
+type: Visual Note
+cover: "[[{{filename}}]]"
+---
 
 ![[{{filename}}]]
 

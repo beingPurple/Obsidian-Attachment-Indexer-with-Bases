@@ -4,6 +4,7 @@ import { PDF_FILE_DESCRIPTION, DEFAULT_PDF_TEMPLATE } from "../utils/constants";
 import { AttachmentParserService } from './AttachmentParserService';
 import { TemplateService } from './TemplateService';
 import { SettingsService } from './SettingsService';
+import { Notice } from 'obsidian';
 
 export class PdfConverterService extends BaseConverterService {
     constructor(
@@ -46,7 +47,8 @@ export class PdfConverterService extends BaseConverterService {
 
     override async convertFiles(): Promise<void> {
         if (!this.parser.validateApiKey()) {
-            console.warn('No Google API key configured - PDF parsing will be skipped');
+            console.warn('[PdfConverter] No Google API key configured - PDF parsing will be skipped');
+            new Notice('⚠️ Google API key not configured. PDF files will not be indexed.\n\nPlease add your API key in plugin settings to enable PDF processing.', 8000);
             return;
         }
         await super.convertFiles();
