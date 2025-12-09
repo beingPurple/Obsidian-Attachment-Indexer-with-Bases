@@ -61,7 +61,10 @@ export default class ObsidianIndexer extends Plugin {
 
 		// Initialize converters and other services
 		const runConversion = async () => {
+			console.log('[ObsidianIndexer] ========== Starting conversion process ==========');
+
 			if (this.isConverting) {
+				console.log('[ObsidianIndexer] Conversion already in progress, aborting');
 				new Notice('Conversion is already in progress. Please wait.');
 				return;
 			}
@@ -69,26 +72,38 @@ export default class ObsidianIndexer extends Plugin {
 			this.isConverting = true;
 			try {
 				// Run converters sequentially
+				console.log('[ObsidianIndexer] Running Canvas converter...');
 				await canvasService.convertFiles();
+
+				console.log('[ObsidianIndexer] Running PDF converter...');
 				await pdfConverter.convertFiles();
+
+				console.log('[ObsidianIndexer] Running PNG converter...');
 				await pngConverter.convertFiles();
+
+				console.log('[ObsidianIndexer] Running JPG converter...');
 				await jpgConverter.convertFiles();
+
+				console.log('[ObsidianIndexer] Running JPEG converter...');
 				await jpegConverter.convertFiles();
-				
+
+				console.log('[ObsidianIndexer] All converters completed successfully');
 				// Show success notification
 				new Notice('All attachments have been processed successfully');
 			} catch (error) {
+				console.error('[ObsidianIndexer] Conversion process failed:', error);
 				if (error instanceof FatalProcessingError) {
 					// Show error notification
 					new Notice('Processing stopped due to Gemini API errors. Please try again later.');
-					console.error('Conversion process stopped:', error.message);
+					console.error('[ObsidianIndexer] Fatal processing error:', error.message);
 				} else {
 					// Handle other errors
 					new Notice('An error occurred during processing');
-					console.error('Conversion error:', error);
+					console.error('[ObsidianIndexer] Conversion error:', error);
 				}
 			} finally {
 				this.isConverting = false;
+				console.log('[ObsidianIndexer] ========== Conversion process ended ==========');
 			}
 		};
 
