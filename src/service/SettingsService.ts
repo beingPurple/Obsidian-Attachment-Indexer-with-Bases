@@ -5,7 +5,6 @@ import { AttachmentParserConfig } from './AttachmentParserService';
 export interface Settings {
 	runOnStart: boolean;
 	runOnStartMobile: boolean;
-	indexFolder: string;
 	googleApiKey: string;
 	pngTemplatePath: string;
 	jpegTemplatePath: string;
@@ -16,7 +15,6 @@ export interface Settings {
 export interface SettingsService extends CanvasServiceConfig {
 	readonly runOnStart: boolean;
 	readonly runOnStartMobile: boolean;
-	readonly indexFolder: string;
 	readonly googleApiKey: string;
 	readonly canvasPostfix: string;
 	readonly pngTemplatePath: string;
@@ -27,7 +25,6 @@ export interface SettingsService extends CanvasServiceConfig {
 
 	updateRunOnStart(value: boolean): Promise<void>;
 	updateRunOnStartMobile(value: boolean): Promise<void>;
-	updateIndexFolder(value: string): Promise<void>;
 	updateGoogleApiKey(value: string): Promise<void>;
 	updatePngTemplatePath(value: string): Promise<void>;
 	updateJpegTemplatePath(value: string): Promise<void>;
@@ -55,10 +52,6 @@ export class SettingsServiceImpl implements SettingsService, AttachmentParserCon
 
 	get runOnStartMobile(): boolean {
 		return this.settings.runOnStartMobile;
-	}
-
-	get indexFolder(): string {
-		return this.settings.indexFolder;
 	}
 
 	get googleApiKey(): string {
@@ -102,11 +95,6 @@ export class SettingsServiceImpl implements SettingsService, AttachmentParserCon
 		await this.saveSettings();
 	}
 
-	async updateIndexFolder(value: string): Promise<void> {
-		this.settings.indexFolder = value;
-		await this.saveSettings();
-	}
-
 	async updateGoogleApiKey(value: string): Promise<void> {
 		this.settings.googleApiKey = value;
 		await this.saveSettings();
@@ -141,7 +129,6 @@ export class SettingsServiceImpl implements SettingsService, AttachmentParserCon
 		return {
 			runOnStart: true,
 			runOnStartMobile: false, // Default to false for mobile for safety
-			indexFolder: 'index',
 			googleApiKey: '',
 			pngTemplatePath: 'Templates/Visual Note.md',
 			jpegTemplatePath: 'Templates/Visual Note.md',

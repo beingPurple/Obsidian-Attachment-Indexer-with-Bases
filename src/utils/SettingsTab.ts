@@ -47,19 +47,6 @@ export class SettingsTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Index folder')
-			.setDesc('Folder to store converted files (must be at least 3 chars). If you change this, you need to manually rename or delete the old folder and re-run the conversion.')
-			.addText(text => text
-				.setPlaceholder('index')
-				.setValue(this.settingsService.indexFolder)
-				.onChange(async (value) => {
-					if (value.length < 3) {
-						value = 'index';
-					}
-					await this.settingsService.updateIndexFolder(value);
-				}));
-
-		new Setting(containerEl)
 			.setName('Google API Key')
 			.setDesc(createFragment(el => {
 				el.appendText('Without this key, only Canvas files will be indexed. While Gemini has daily limits, they are usually sufficient for free usage. PDFs and images will be indexed gradually over several hours. Get your key here: ');

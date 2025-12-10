@@ -9,13 +9,11 @@ import { Notice } from 'obsidian';
 export class PngConverterService extends BaseConverterService {
     constructor(
         fileDao: FileDao,
-        indexFolder: string,
         private parser: AttachmentParserService,
         private templateService: TemplateService,
         private settingsService: SettingsService
     ) {
         super(fileDao, {
-            indexFolder,
             sourceExtension: '.png',
             targetExtension: '.png.md'
         });

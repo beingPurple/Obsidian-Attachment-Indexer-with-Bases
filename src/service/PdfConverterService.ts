@@ -9,13 +9,11 @@ import { Notice } from 'obsidian';
 export class PdfConverterService extends BaseConverterService {
     constructor(
         fileDao: FileDao,
-        indexFolder: string,
         private parser: AttachmentParserService,
         private templateService: TemplateService,
         private settingsService: SettingsService
     ) {
         super(fileDao, {
-            indexFolder,
             sourceExtension: '.pdf',
             targetExtension: '.pdf.md'
         });

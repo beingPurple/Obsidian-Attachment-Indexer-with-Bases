@@ -6,7 +6,6 @@ import { BaseConverterService } from './BaseConverterService';
 export class CanvasService extends BaseConverterService {
 	constructor(fileDao: FileDao, config: CanvasServiceConfig) {
 		super(fileDao, {
-			indexFolder: config.indexFolder,
 			sourceExtension: '.canvas',
 			targetExtension: config.canvasPostfix
 		});

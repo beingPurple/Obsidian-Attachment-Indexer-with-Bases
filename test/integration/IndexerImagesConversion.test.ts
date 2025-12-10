@@ -41,7 +41,7 @@ describe('Integration Test: Image Indexer Conversion', () => {
             'image/png',
             "Parse text from the image. Return full text and also give me description of the image"
         );
-        pngConverter = new PngConverterService(fileDao, 'index', imageParser, templateService, mockSettingsService);
+        pngConverter = new PngConverterService(fileDao, imageParser, templateService, mockSettingsService);
 
         // Clear dao to ensure a clean state
         fileAdapter.clear();

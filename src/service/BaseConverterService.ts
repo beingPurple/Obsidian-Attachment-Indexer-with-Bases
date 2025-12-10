@@ -2,7 +2,6 @@ import { File, FileDao } from "../dao/FileDao";
 import { FatalProcessingError } from './AttachmentParserService';
 
 export interface ConversionConfig {
-    indexFolder: string;
     sourceExtension: string;
     targetExtension: string;
 }
@@ -17,16 +16,12 @@ export abstract class BaseConverterService {
         console.log(`[BaseConverter] Starting conversion for ${this.config.sourceExtension} files`);
 
         try {
-            await this.fileDao.createFolder(this.config.indexFolder);
-
             const allFiles = await this.fileDao.getFiles();
             const sourceFiles = allFiles.filter(f => f.path.endsWith(this.config.sourceExtension));
             console.log(`[BaseConverter] Found ${sourceFiles.length} source files (${this.config.sourceExtension})`);
 
-            const convertedFiles = allFiles.filter(f =>
-                f.path.startsWith(`${this.config.indexFolder}/`) &&
-                f.path.endsWith(this.config.targetExtension)
-            );
+            // Find all converted files that match our target extension
+            const convertedFiles = allFiles.filter(f => f.path.endsWith(this.config.targetExtension));
 
             const [removedFiles, createdFiles, modifiedFiles] = await Promise.all([
                 this.removeOrphanedFiles(convertedFiles, sourceFiles),
@@ -50,15 +45,25 @@ export abstract class BaseConverterService {
         return file.name.slice(0, -this.config.targetExtension.length) + this.config.sourceExtension;
     }
 
-    protected getConvertedFilePath(sourceName: string): string {
-        return `${this.config.indexFolder}/${sourceName.slice(0, -this.config.sourceExtension.length)}${this.config.targetExtension}`;
+    protected getConvertedFilePath(source: File): string {
+        // Place the .md file in the same directory as the source file
+        const directory = source.path.substring(0, source.path.lastIndexOf('/'));
+        const baseName = source.name.slice(0, -this.config.sourceExtension.length);
+
+        if (directory) {
+            return `${directory}/${baseName}${this.config.targetExtension}`;
+        } else {
+            // File is in vault root
+            return `${baseName}${this.config.targetExtension}`;
+        }
     }
 
     protected async removeOrphanedFiles(convertedFiles: File[], sourceFiles: File[]): Promise<string[]> {
-        const sourceNames = new Set(sourceFiles.map(f => f.name));
+        // Build a set of expected converted file paths from source files
+        const expectedConvertedPaths = new Set(sourceFiles.map(source => this.getConvertedFilePath(source)));
 
         const removedFiles = convertedFiles
-            .filter(convertedFile => !sourceNames.has(this.getSourceName(convertedFile)))
+            .filter(convertedFile => !expectedConvertedPaths.has(convertedFile.path))
             .map(async convertedFile => {
                 try {
                     await this.fileDao.deleteFile(convertedFile.path);
@@ -76,15 +81,15 @@ export abstract class BaseConverterService {
         count: number;
         files: string[]
     }> {
-        const convertedNames = new Set(convertedFiles.map(f => this.getSourceName(f)));
-        const newFiles = sourceFiles.filter(source => !convertedNames.has(source.name));
+        const convertedPaths = new Set(convertedFiles.map(f => f.path));
+        const newFiles = sourceFiles.filter(source => !convertedPaths.has(this.getConvertedFilePath(source)));
 
         console.log(`[BaseConverter] Creating ${newFiles.length} new files`);
 
         const processedNames = [];
         for (const source of newFiles) {
             try {
-                const targetPath = this.getConvertedFilePath(source.name);
+                const targetPath = this.getConvertedFilePath(source);
                 await this.convertAndSave(source, targetPath);
                 processedNames.push(source.name);
             } catch (error) {
@@ -103,17 +108,18 @@ export abstract class BaseConverterService {
     }> {
         const convertedFileMap = new Map(
             convertedFiles.map(convertedFile => [
-                this.getSourceName(convertedFile),
+                convertedFile.path,
                 convertedFile
             ])
         );
 
         const modifiedFileNames = [];
         for (const source of sourceFiles) {
-            const convertedFile = convertedFileMap.get(source.name);
+            const expectedPath = this.getConvertedFilePath(source);
+            const convertedFile = convertedFileMap.get(expectedPath);
             if (convertedFile && source.modifiedTime >= convertedFile.modifiedTime) {
                 try {
-                    const targetPath = this.getConvertedFilePath(source.name);
+                    const targetPath = this.getConvertedFilePath(source);
                     await this.convertAndSave(source, targetPath);
                     modifiedFileNames.push(source.name);
                 } catch (error) {
@@ -158,7 +164,7 @@ export abstract class BaseConverterService {
                 `  ${modifiedFiles.files.map(f => `- ${f.replace(this.config.sourceExtension, '')}`).join('\n  ')}\n` : '') +
             `Deleted files ${removedFiles.length}\n` +
             (removedFiles.length > 0 ?
-                `  ${removedFiles.map(f => `- ${f.replace(`${this.config.indexFolder}/`, '').replace(this.config.targetExtension, '')}`).join('\n  ')}\n` : '')
+                `  ${removedFiles.map(f => `- ${f.replace(this.config.targetExtension, '')}`).join('\n  ')}\n` : '')
         );
     }
 } 
