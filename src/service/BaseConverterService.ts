@@ -15,28 +15,19 @@ export abstract class BaseConverterService {
 
     async convertFiles(): Promise<void> {
         console.log(`[BaseConverter] Starting conversion for ${this.config.sourceExtension} files`);
-        console.log(`[BaseConverter] Index folder: ${this.config.indexFolder}`);
 
         try {
-            console.log(`[BaseConverter] Creating index folder: ${this.config.indexFolder}`);
             await this.fileDao.createFolder(this.config.indexFolder);
-            console.log(`[BaseConverter] Index folder created/verified successfully`);
 
-            console.log(`[BaseConverter] Fetching all files from vault`);
             const allFiles = await this.fileDao.getFiles();
-            console.log(`[BaseConverter] Total files in vault: ${allFiles.length}`);
-
             const sourceFiles = allFiles.filter(f => f.path.endsWith(this.config.sourceExtension));
-            console.log(`[BaseConverter] Source files (${this.config.sourceExtension}): ${sourceFiles.length}`);
-            console.log(`[BaseConverter] Source file paths:`, sourceFiles.map(f => f.path));
+            console.log(`[BaseConverter] Found ${sourceFiles.length} source files (${this.config.sourceExtension})`);
 
             const convertedFiles = allFiles.filter(f =>
                 f.path.startsWith(`${this.config.indexFolder}/`) &&
                 f.path.endsWith(this.config.targetExtension)
             );
-            console.log(`[BaseConverter] Converted files (${this.config.targetExtension}): ${convertedFiles.length}`);
 
-            console.log(`[BaseConverter] Starting parallel processing: remove orphaned, create new, modify existing`);
             const [removedFiles, createdFiles, modifiedFiles] = await Promise.all([
                 this.removeOrphanedFiles(convertedFiles, sourceFiles),
                 this.createConvertedFiles(sourceFiles, convertedFiles),
@@ -44,10 +35,8 @@ export abstract class BaseConverterService {
             ]);
 
             this.logConversionResults(removedFiles, createdFiles, modifiedFiles, sourceFiles.length);
-            console.log(`[BaseConverter] Conversion completed successfully for ${this.config.sourceExtension}`);
         } catch (error) {
             console.error(`[BaseConverter] Error during conversion for ${this.config.sourceExtension}:`, error);
-            console.error(`[BaseConverter] Error stack:`, error instanceof Error ? error.stack : 'No stack trace');
 
             if (error instanceof FatalProcessingError) {
                 throw error;
@@ -90,16 +79,14 @@ export abstract class BaseConverterService {
         const convertedNames = new Set(convertedFiles.map(f => this.getSourceName(f)));
         const newFiles = sourceFiles.filter(source => !convertedNames.has(source.name));
 
-        console.log(`[BaseConverter] createConvertedFiles: ${newFiles.length} new files to create`);
+        console.log(`[BaseConverter] Creating ${newFiles.length} new files`);
 
         const processedNames = [];
         for (const source of newFiles) {
             try {
                 const targetPath = this.getConvertedFilePath(source.name);
-                console.log(`[BaseConverter] Creating new file: ${source.name} -> ${targetPath}`);
                 await this.convertAndSave(source, targetPath);
                 processedNames.push(source.name);
-                console.log(`[BaseConverter] Successfully created: ${targetPath}`);
             } catch (error) {
                 if (error instanceof FatalProcessingError) {
                     throw error;
@@ -121,18 +108,14 @@ export abstract class BaseConverterService {
             ])
         );
 
-        console.log(`[BaseConverter] modifyConvertedFiles: Checking ${sourceFiles.length} source files for updates`);
-
         const modifiedFileNames = [];
         for (const source of sourceFiles) {
             const convertedFile = convertedFileMap.get(source.name);
             if (convertedFile && source.modifiedTime >= convertedFile.modifiedTime) {
                 try {
                     const targetPath = this.getConvertedFilePath(source.name);
-                    console.log(`[BaseConverter] Updating modified file: ${source.name} -> ${targetPath}`);
                     await this.convertAndSave(source, targetPath);
                     modifiedFileNames.push(source.name);
-                    console.log(`[BaseConverter] Successfully updated: ${targetPath}`);
                 } catch (error) {
                     if (error instanceof FatalProcessingError) {
                         throw error;
@@ -142,22 +125,20 @@ export abstract class BaseConverterService {
             }
         }
 
-        console.log(`[BaseConverter] modifyConvertedFiles: ${modifiedFileNames.length} files updated`);
+        if (modifiedFileNames.length > 0) {
+            console.log(`[BaseConverter] Updated ${modifiedFileNames.length} modified files`);
+        }
         return { count: modifiedFileNames.length, files: modifiedFileNames };
     }
 
     protected async convertAndSave(source: File, targetPath: string): Promise<void> {
-        console.log(`[BaseConverter] convertAndSave: Starting conversion for ${source.path}`);
-        console.log(`[BaseConverter] convertAndSave: Target path: ${targetPath}`);
+        console.log(`[BaseConverter] Converting: ${source.name} -> ${targetPath}`);
 
         try {
             const convertedContent = await this.convertContent(source);
-            console.log(`[BaseConverter] convertAndSave: Content converted, length: ${convertedContent.length} chars`);
-
             await this.fileDao.createOrUpdateFile(targetPath, convertedContent);
-            console.log(`[BaseConverter] convertAndSave: File saved successfully to ${targetPath}`);
         } catch (error) {
-            console.error(`[BaseConverter] convertAndSave: Error converting ${source.path}:`, error);
+            console.error(`[BaseConverter] Error converting ${source.path}:`, error);
             throw error;
         }
     }

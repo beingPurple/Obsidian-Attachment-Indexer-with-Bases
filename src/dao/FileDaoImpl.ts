@@ -31,19 +31,13 @@ export class FileDaoImpl implements FileDao {
 	}
 
 	async createOrUpdateFile(path: string, content: string): Promise<void> {
-		console.log(`[FileDaoImpl] createOrUpdateFile: ${path}`);
-
 		try {
 			// First try to modify existing file
-			console.log(`[FileDaoImpl] Attempting to modify existing file: ${path}`);
 			await this.fileAdapter.modify(path, content);
-			console.log(`[FileDaoImpl] File modified successfully: ${path}`);
 		} catch (e) {
 			// If modify fails, try to create new file
-			console.log(`[FileDaoImpl] Modify failed, attempting to create new file: ${path}`);
 			try {
 				await this.fileAdapter.create(path, content);
-				console.log(`[FileDaoImpl] File created successfully: ${path}`);
 			} catch (createError) {
 				console.error(`[FileDaoImpl] Error in createOrUpdateFile for path ${path}:`, createError);
 				throw createError;
@@ -77,10 +71,8 @@ export class FileDaoImpl implements FileDao {
 	}
 
 	async createFolder(path: string): Promise<void> {
-		console.log(`[FileDaoImpl] createFolder: ${path}`);
 		try {
 			await this.fileAdapter.createFolder(path);
-			console.log(`[FileDaoImpl] Folder created/verified successfully: ${path}`);
 		} catch (error) {
 			console.error(`[FileDaoImpl] Error creating folder ${path}:`, error);
 			throw error;

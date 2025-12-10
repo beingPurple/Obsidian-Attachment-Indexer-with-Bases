@@ -41,8 +41,9 @@ export class TemplateServiceImpl implements TemplateService {
 	}
 
 	substituteVariables(template: string, variables: TemplateVariables): string {
-		console.log(`[TemplateService] Substituting variables in template`);
-		console.log(`[TemplateService] Variables:`, Object.keys(variables));
+		console.log(`[TemplateService] ========== TEMPLATE SUBSTITUTION START ==========`);
+		console.log(`[TemplateService] Template BEFORE substitution:\n`, template);
+		console.log(`[TemplateService] Variables to substitute:`, variables);
 
 		let result = template;
 
@@ -50,11 +51,22 @@ export class TemplateServiceImpl implements TemplateService {
 		for (const [key, value] of Object.entries(variables)) {
 			if (value !== undefined) {
 				const regex = new RegExp(`{{${key}}}`, 'g');
+				const beforeReplace = result;
 				result = result.replace(regex, value);
+
+				// Log each substitution
+				if (beforeReplace !== result) {
+					console.log(`[TemplateService] ✓ Replaced {{${key}}} with: "${value}"`);
+				} else {
+					console.log(`[TemplateService] ⚠ No matches found for {{${key}}}`);
+				}
+			} else {
+				console.log(`[TemplateService] ⚠ Skipping {{${key}}} - value is undefined`);
 			}
 		}
 
-		console.log(`[TemplateService] Template after substitution, length: ${result.length} chars`);
+		console.log(`[TemplateService] Template AFTER substitution:\n`, result);
+		console.log(`[TemplateService] ========== TEMPLATE SUBSTITUTION END ==========`);
 		return result;
 	}
 }

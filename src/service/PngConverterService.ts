@@ -22,11 +22,9 @@ export class PngConverterService extends BaseConverterService {
     }
 
     protected async convertContent(source: File): Promise<string> {
-        console.log(`[PngConverter] convertContent: Processing ${source.name}`);
-        console.log(`[PngConverter] File size: ${source.sizeInMB.toFixed(2)} MB`);
+        console.log(`[PngConverter] Processing ${source.name}`);
 
         const content = await this.parser.parseAttachmentContent(source.sizeInMB, () => source.getBinaryContent(), source.path);
-        console.log(`[PngConverter] Parsed content length: ${content.length} chars`);
 
         // Load template (user custom or fallback)
         const template = await this.templateService.loadTemplate(
@@ -46,9 +44,7 @@ export class PngConverterService extends BaseConverterService {
         };
 
         // Substitute variables in template
-        const result = this.templateService.substituteVariables(template, variables);
-        console.log(`[PngConverter] Final markdown length: ${result.length} chars`);
-        return result;
+        return this.templateService.substituteVariables(template, variables);
     }
 
     override async convertFiles(): Promise<void> {

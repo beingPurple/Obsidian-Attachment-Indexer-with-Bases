@@ -18,27 +18,19 @@ export class ObsidianFileAdapter implements FileAdapter {
 	}
 
 	async createFolder(folderPath: string): Promise<void> {
-		console.log(`[ObsidianFileAdapter] createFolder: ${folderPath}`);
-
 		const existingFolder = this.app.vault.getAbstractFileByPath(folderPath);
-		console.log(`[ObsidianFileAdapter] Folder exists check: ${existingFolder ? 'EXISTS' : 'DOES NOT EXIST'}`);
 
 		if (!existingFolder) {
 			try {
-				console.log(`[ObsidianFileAdapter] Creating folder: ${folderPath}`);
 				await this.app.vault.createFolder(folderPath);
-				console.log(`[ObsidianFileAdapter] Folder created successfully: ${folderPath}`);
 			} catch (error) {
-				console.error(`[ObsidianFileAdapter] Error creating folder ${folderPath}:`, error);
 				// Check if it's just a "folder already exists" error and ignore it
 				if (error instanceof Error && error.message.includes('already exists')) {
-					console.log(`[ObsidianFileAdapter] Folder already exists, ignoring error`);
 					return;
 				}
+				console.error(`[ObsidianFileAdapter] Error creating folder ${folderPath}:`, error);
 				throw error;
 			}
-		} else {
-			console.log(`[ObsidianFileAdapter] Folder already exists, skipping creation: ${folderPath}`);
 		}
 	}
 
