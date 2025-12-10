@@ -23,6 +23,11 @@ export class PngConverterService extends BaseConverterService {
         console.log(`[PngConverter] Processing ${source.name}`);
 
         const content = await this.parser.parseAttachmentContent(source.sizeInMB, () => source.getBinaryContent(), source.path);
+        console.log(`[PngConverter] ========== EXTRACTED CONTENT DEBUG ==========`);
+        console.log(`[PngConverter] File: ${source.name}`);
+        console.log(`[PngConverter] Content length: ${content ? content.length : 0} chars`);
+        console.log(`[PngConverter] Content preview: ${content ? content.substring(0, 200) : '(empty)'}`);
+        console.log(`[PngConverter] ==========================================`);
 
         // Load template (user custom or fallback)
         const template = await this.templateService.loadTemplate(

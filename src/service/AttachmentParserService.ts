@@ -61,14 +61,21 @@ The file cannot be processed due to Gemini API limitations.`;
         // Check file size first
         const sizeError = this.validateFileSize(fileSizeMB, filePath);
         if (sizeError) {
+            console.log(`[Parser] File too large: ${filePath} (${fileSizeMB}MB)`);
             return sizeError;
         }
 
         try {
+            console.log(`[Parser] ========== CALLING GEMINI API ==========`);
+            console.log(`[Parser] File: ${filePath}`);
+            console.log(`[Parser] Size: ${fileSizeMB.toFixed(2)}MB`);
+            console.log(`[Parser] MIME type: ${this.mimeType}`);
+            console.log(`[Parser] Attempt: ${retryCount + 1}/3`);
+
             const buffer = await getBuffer();
             const genAI = new GoogleGenerativeAI(this.config.getApiKey());
             const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-            
+
             const base64Data = this.arrayBufferToBase64(buffer);
             const dataPart = {
                 inlineData: {
@@ -79,6 +86,12 @@ The file cannot be processed due to Gemini API limitations.`;
 
             const result = await model.generateContent([this.prompt, dataPart]);
             const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text || 'No content found';
+
+            console.log(`[Parser] ✓ API call successful`);
+            console.log(`[Parser] Response length: ${text.length} chars`);
+            console.log(`[Parser] Response preview: ${text.substring(0, 150)}...`);
+            console.log(`[Parser] ==========================================`);
+
             return text.trim();
         } catch (error) {
             // If it's a 400 error (Bad Request), return formatted error message
